@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PaisaFlow | Professional Freelancer Suite</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: all 0.2s; }
+        .card:hover { box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .nav-active { background-color: rgba(79, 70, 229, 0.1); color: #4f46e5; border-right: 3px solid #4f46e5; }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Custom Progress Bar */
+        .progress-container { background-color: #e2e8f0; border-radius: 999px; height: 10px; width: 100%; overflow: hidden; }
+        .progress-bar { background: linear-gradient(90deg, #4f46e5 0%, #818cf8 100%); height: 100%; transition: width 1s ease-in-out; }
+        
+        /* Print Styles */
+        @media print { 
+            .no-print { display: none !important; } 
+            body { background: white; }
+            .card { box-shadow: none; border: none; }
+        }
+    </style>
+</head>
+<body class="flex min-h-screen text-gray-800">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-gray-200 hidden md:flex flex-col fixed h-full z-10 no-print">
+        <div class="p-6 border-b border-gray-100 flex items-center gap-3">
+            <i class="fas fa-wallet text-2xl text-indigo-600"></i>
+            <h1 class="text-xl font-bold tracking-tight">PaisaFlow</h1>
+        </div>
+        <nav class="flex-1 p-4 space-y-2">
+            <a href="#" onclick="switchTab('dashboard')" id="nav-dashboard" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-50 nav-active">
+                <i class="fas fa-columns w-5"></i> Dashboard
+            </a>
+            <a href="#" onclick="switchTab('invoices')" id="nav-invoices" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-50">
+                <i class="fas fa-file-invoice w-5"></i> Invoices
+            </a>
+            <a href="#" onclick="switchTab('expenses')" id="nav-expenses" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-50">
+                <i class="fas fa-receipt w-5"></i> Expenses
+            </a>
+            <a href="#" onclick="switchTab('settings')" id="nav-settings" class="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-50">
+                <i class="fas fa-user-cog w-5"></i> Settings
+            </a>
+        </nav>
+        <div class="p-4 border-t border-gray-100">
+            <div class="bg-indigo-50 rounded-lg p-3 text-xs text-indigo-800">
+                <p class="font-bold">Standalone Version</p>
+                <p>Data saved to Browser</p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 md:ml-64 p-8">
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-8 no-print">
+            <h2 id="pageTitle" class="text-2xl font-bold text-gray-800">Dashboard</h2>
+            <div class="flex items-center gap-4">
+                <span class="text-sm text-gray-500" id="headerUserName">Loading...</span>
+                <div class="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold">
+                    PF
+                </div>
+            </div>
+        </header>
+
+        <!-- DASHBOARD VIEW -->
+        <div id="view-dashboard" class="space-y-6 fade-in">
+            <!-- Goal Tracker -->
+            <div class="card p-6 border border-indigo-100 bg-indigo-50">
+                <div class="flex justify-between items-end mb-2">
+                    <div>
+                        <h3 class="font-bold text-indigo-900">Monthly Financial Goal</h3>
+                        <p class="text-sm text-indigo-600">Target: ₹<span id="txtMonthlyGoal">0</span></p>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-2xl font-bold text-indigo-700" id="txtGoalPercent">0%</span>
+                        <p class="text-xs text-indigo-500">Achieved</p>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div id="barGoal" class="progress-bar" style="width: 0%"></div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2 text-center">Keep going! Only ₹<span id="txtGoalRemaining">0</span> more to hit your target.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="card p-6 border-l-4 border-green-500">
+                    <p class="text-gray-500 text-sm font-medium">Total Revenue (INR)</p>
+                    <h2 class="text-2xl font-bold mt-2">₹<span id="statRevenue">0</span></h2>
+                </div>
+                <div class="card p-6 border-l-4 border-yellow-500">
+                    <p class="text-gray-500 text-sm font-medium">Pending Payments</p>
+                    <h2 class="text-2xl font-bold mt-2">₹<span id="statPending">0</span></h2>
+                </div>
+                <div class="card p-6 border-l-4 border-red-500">
+                    <p class="text-gray-500 text-sm font-medium">Total Expenses</p>
+                    <h2 class="text-2xl font-bold mt-2">₹<span id="statExpense">0</span></h2>
+                </div>
+                <div class="card p-6 border-l-4 border-indigo-500 relative">
+                    <p class="text-gray-500 text-sm font-medium">Tax Payable (Est)</p>
+                    <h2 class="text-2xl font-bold mt-2 text-indigo-600">₹<span id="statTax">0</span></h2>
+                    <p class="text-xs text-gray-400 mt-1" id="statTdsCredit">TDS Credit: ₹0</p>
+                    <i class="fas fa-info-circle absolute top-6 right-6 text-indigo-200" title="Net Tax Liability after TDS credit"></i>
+                </div>
+            </div>
+
+            <div class="card p-6">
+                <div class="flex justify-between items-center mb-4">
+                     <h3 class="font-bold text-lg">Recent Invoices</h3>
+                     <button onclick="clearData()" class="text-xs text-red-400 hover:text-red-600 underline">Reset All Data</button>
+                </div>
+               
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-gray-50 text-gray-500 font-medium">
+                            <tr>
+                                <th class="p-3">Client</th>
+                                <th class="p-3">Date</th>
+                                <th class="p-3">Amount</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dashboardInvoiceList"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- INVOICES VIEW -->
+        <div id="view-invoices" class="hidden space-y-6 fade-in">
+            <div class="card p-8 max-w-2xl mx-auto">
+                <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                    <i class="fas fa-plus-circle text-indigo-600"></i> Create New Invoice
+                </h3>
+                <form id="invoiceForm" class="space-y-4" onsubmit="handleInvoiceSubmit(event)">
+                    <div class="p-3 bg-blue-50 rounded border border-blue-100 mb-4">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" name="is_export" id="chkExport" onchange="toggleExportMode()" class="w-5 h-5 text-indigo-600 rounded">
+                            <div>
+                                <span class="text-sm font-bold text-gray-800">International / Export Invoice?</span>
+                                <p class="text-xs text-gray-500">Select this for non-Indian clients (USD/EUR). GST will be set to 0%.</p>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Client Name</label>
+                            <input type="text" name="client_name" required class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Client GSTIN (Opt)</label>
+                            <input type="text" name="client_gstin" class="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div id="divState">
+                            <label class="block text-sm font-medium mb-1">Client State</label>
+                            <select name="client_state" id="inpState" class="w-full p-2 border rounded bg-white">
+                                <option value="Maharashtra">Maharashtra</option>
+                                <option value="Karnataka">Karnataka</option>
+                                <option value="Delhi">Delhi</option>
+                                <option value="Tamil Nadu">Tamil Nadu</option>
+                                <option value="Gujarat">Gujarat</option>
+                            </select>
+                        </div>
+                        <div id="divCountry" class="hidden">
+                            <label class="block text-sm font-medium mb-1">Client Country</label>
+                            <input type="text" name="client_country" id="inpCountry" placeholder="e.g. United States" class="w-full p-2 border rounded bg-white">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Currency</label>
+                            <div class="flex gap-2">
+                                <select name="currency" id="inpCurrency" onchange="updateConversion()" class="w-1/3 p-2 border rounded bg-white">
+                                    <option value="INR">INR (₹)</option>
+                                    <option value="USD">USD ($)</option>
+                                    <option value="EUR">EUR (€)</option>
+                                    <option value="GBP">GBP (£)</option>
+                                </select>
+                                <input type="number" name="amount" placeholder="Amount" required class="w-2/3 p-2 border rounded">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="divConversion" class="hidden">
+                        <label class="block text-sm font-medium mb-1 text-blue-700">Conversion Rate (to INR)</label>
+                        <input type="number" name="conversion_rate" id="inpConversion" value="1" step="0.01" class="w-full p-2 border border-blue-300 bg-blue-50 rounded">
+                        <p class="text-xs text-blue-500 mt-1">Auto-populated based on selected currency.</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Invoice Date</label>
+                            <input type="date" name="date" required class="w-full p-2 border rounded">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Due Date</label>
+                            <input type="date" name="due_date" required class="w-full p-2 border rounded">
+                        </div>
+                    </div>
+                    
+                    <div class="p-3 bg-gray-50 rounded border border-gray-200">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" name="tds_applicable" class="w-5 h-5 text-indigo-600 rounded">
+                            <span class="text-sm font-medium text-gray-700">Client deducts TDS? (Usually 10%)</span>
+                        </label>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Notes / Payment Terms</label>
+                        <textarea name="notes" rows="2" class="w-full p-2 border rounded"></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-medium hover:bg-indigo-700 transition shadow">
+                        Generate Invoice
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- EXPENSES VIEW -->
+        <div id="view-expenses" class="hidden space-y-6 fade-in">
+            <div class="card p-8 max-w-2xl mx-auto">
+                <h3 class="text-xl font-bold mb-6 flex items-center gap-2">
+                    <i class="fas fa-receipt text-red-500"></i> Record Expense
+                </h3>
+                <form id="expenseForm" class="space-y-4" onsubmit="handleExpenseSubmit(event)">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Vendor Name</label>
+                        <input type="text" name="vendor" required placeholder="e.g. Amazon, Landlord" class="w-full p-2 border rounded">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Category</label>
+                            <select name="category" class="w-full p-2 border rounded bg-white">
+                                <option value="Software">Software</option>
+                                <option value="Rent">Office Rent</option>
+                                <option value="Internet">Internet/WiFi</option>
+                                <option value="Equipment">Hardware/Equipment</option>
+                                <option value="Travel">Travel</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Amount (₹)</label>
+                            <input type="number" name="amount" required class="w-full p-2 border rounded">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Date</label>
+                            <input type="date" name="date" required class="w-full p-2 border rounded">
+                        </div>
+                        <div class="flex items-center pt-6">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" name="is_recurring" class="w-4 h-4 text-indigo-600">
+                                <span class="text-sm">This is a recurring expense</span>
+                            </label>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-red-500 text-white py-3 rounded-lg font-medium hover:bg-red-600 transition shadow">
+                        Save Expense
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- SETTINGS VIEW -->
+        <div id="view-settings" class="hidden space-y-6 fade-in">
+            <div class="card p-8 max-w-2xl mx-auto">
+                <h3 class="text-xl font-bold mb-6">Business Profile & Goals</h3>
+                <form id="settingsForm" class="space-y-4" onsubmit="handleSettingsSubmit(event)">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Business Name</label>
+                        <input type="text" name="name" id="set_name" class="w-full p-2 border rounded">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Email</label>
+                        <input type="email" name="email" id="set_email" class="w-full p-2 border rounded">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">State</label>
+                        <select name="state" id="set_state" class="w-full p-2 border rounded bg-white">
+                            <option value="Maharashtra">Maharashtra</option>
+                            <option value="Karnataka">Karnataka</option>
+                            <option value="Delhi">Delhi</option>
+                            <option value="Tamil Nadu">Tamil Nadu</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">GSTIN</label>
+                            <input type="text" name="gstin" id="set_gstin" class="w-full p-2 border rounded">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1 text-indigo-700">Monthly Revenue Goal (₹)</label>
+                            <input type="number" name="monthly_goal" id="set_goal" class="w-full p-2 border border-indigo-200 bg-indigo-50 rounded font-bold">
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-gray-800 text-white py-2 rounded hover:bg-black transition">
+                        Update Profile
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- DATA STORAGE (Local Storage) ---
+        const defaultData = {
+            user: {
+                name: "John Doe Designs",
+                email: "john@paisaflow.in",
+                state: "Maharashtra",
+                gstin: "27ABCDE1234F1Z5",
+                monthly_goal: 100000
+            },
+            invoices: [
+                {
+                    id: "INV-2024-001", client: "TechCorp India", client_state: "Karnataka", client_country: "India",
+                    date: "2024-10-01", due_date: "2024-10-15", amount: 50000.0, currency: "INR", conversion_rate: 1.0,
+                    status: "Paid", cgst: 0, sgst: 0, igst: 9000.0, total: 59000.0, tds_applicable: true, is_export: false
+                }
+            ],
+            expenses: []
+        };
+
+        // Initialize DB from LocalStorage or use Default
+        let db = JSON.parse(localStorage.getItem('paisaflow_db')) || defaultData;
+
+        function saveDb() {
+            localStorage.setItem('paisaflow_db', JSON.stringify(db));
+            renderDashboard();
+        }
+
+        function clearData() {
+            if(confirm("Are you sure you want to reset all data?")) {
+                localStorage.removeItem('paisaflow_db');
+                location.reload();
+            }
+        }
+
+        // --- CONSTANTS ---
+        const symbolMap = {'INR': '₹', 'USD': '$', 'EUR': '€', 'GBP': '£'};
+        const currencyRates = { 'INR': 1, 'USD': 90, 'EUR': 105, 'GBP': 121 };
+
+        // --- BUSINESS LOGIC (Ported from Python) ---
+        function calculateGST(amount, clientState, isExport) {
+            if (isExport) return { cgst: 0, sgst: 0, igst: 0, total: amount };
+
+            const userState = db.user.state;
+            const rate = 0.18;
+
+            if (!clientState) return { cgst: 0, sgst: 0, igst: 0, total: amount };
+
+            if (userState.toLowerCase().trim() === clientState.toLowerCase().trim()) {
+                const cgst = amount * (rate / 2);
+                const sgst = amount * (rate / 2);
+                return { cgst, sgst, igst: 0, total: amount + cgst + sgst };
+            } else {
+                const igst = amount * rate;
+                return { cgst: 0, sgst: 0, igst, total: amount + igst };
+            }
+        }
+
+        function calculateIncomeTax(netIncome) {
+            let income = Math.max(0, netIncome);
+            let tax = 0;
+            // Standard Deduction
+            let taxableIncome = Math.max(0, income - 50000);
+
+            if (taxableIncome <= 300000) return 0;
+
+            if (taxableIncome > 300000) tax += Math.min(taxableIncome - 300000, 300000) * 0.05;
+            if (taxableIncome > 600000) tax += Math.min(taxableIncome - 600000, 300000) * 0.10;
+            if (taxableIncome > 900000) tax += Math.min(taxableIncome - 900000, 300000) * 0.15;
+            if (taxableIncome > 1200000) tax += Math.min(taxableIncome - 1200000, 300000) * 0.20;
+            if (taxableIncome > 1500000) tax += (taxableIncome - 1500000) * 0.30;
+
+            return tax;
+        }
+
+        // --- UI & RENDERING ---
+        function renderDashboard() {
+            // Calculations
+            let totalRevenue = 0;
+            let pendingRevenue = 0;
+            let totalExpenses = 0;
+            let taxableRevenue = 0;
+            let tdsCredit = 0;
+
+            db.invoices.forEach(inv => {
+                const inrTotal = inv.total * inv.conversion_rate;
+                const inrBase = inv.amount * inv.conversion_rate;
+
+                if (inv.status === 'Paid') {
+                    totalRevenue += inrTotal;
+                    taxableRevenue += inrBase;
+                    if (inv.tds_applicable) {
+                        tdsCredit += (inrBase * 0.10);
+                    }
+                } else if (['Sent', 'Overdue'].includes(inv.status)) {
+                    pendingRevenue += inrTotal;
+                }
+            });
+
+            db.expenses.forEach(exp => {
+                totalExpenses += exp.amount;
+            });
+
+            const netIncome = taxableRevenue - totalExpenses;
+            const grossTax = calculateIncomeTax(netIncome);
+            const finalTax = Math.max(0, grossTax - tdsCredit);
+
+            // Update DOM
+            document.getElementById('statRevenue').innerText = Math.round(totalRevenue).toLocaleString();
+            document.getElementById('statPending').innerText = Math.round(pendingRevenue).toLocaleString();
+            document.getElementById('statExpense').innerText = totalExpenses.toLocaleString();
+            document.getElementById('statTax').innerText = Math.round(finalTax).toLocaleString();
+            document.getElementById('statTdsCredit').innerText = `TDS Credit: ₹${Math.round(tdsCredit).toLocaleString()}`;
+
+            // Goal
+            const goal = db.user.monthly_goal || 100000;
+            const progress = Math.min(100, (totalRevenue / goal) * 100);
+            const remaining = Math.max(0, goal - totalRevenue);
+            
+            document.getElementById('txtMonthlyGoal').innerText = goal.toLocaleString();
+            document.getElementById('txtGoalPercent').innerText = Math.round(progress) + '%';
+            document.getElementById('txtGoalRemaining').innerText = Math.round(remaining).toLocaleString();
+            document.getElementById('barGoal').style.width = progress + '%';
+
+            // User Profile
+            document.getElementById('headerUserName').innerText = db.user.name;
+            document.getElementById('set_name').value = db.user.name;
+            document.getElementById('set_email').value = db.user.email;
+            document.getElementById('set_state').value = db.user.state;
+            document.getElementById('set_gstin').value = db.user.gstin;
+            document.getElementById('set_goal').value = db.user.monthly_goal;
+
+            // Invoice List
+            const list = document.getElementById('dashboardInvoiceList');
+            if(db.invoices.length === 0) {
+                list.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-gray-400">No invoices found</td></tr>';
+            } else {
+                list.innerHTML = db.invoices.slice().reverse().map(inv => {
+                    const sym = symbolMap[inv.currency] || inv.currency;
+                    return `
+                    <tr class="border-b border-gray-100 last:border-0 hover:bg-gray-50 transition">
+                        <td class="p-3">
+                            <div class="font-bold text-gray-800">${inv.client}</div>
+                            <div class="flex gap-2">
+                                <span class="text-xs text-gray-500">${inv.id}</span>
+                                ${inv.is_export ? '<span class="text-xs bg-blue-100 text-blue-800 px-1 rounded">Export</span>' : ''}
+                            </div>
+                        </td>
+                        <td class="p-3 text-sm text-gray-600">${inv.date}</td>
+                        <td class="p-3 font-medium">${sym}${inv.amount.toLocaleString()}</td>
+                        <td class="p-3">
+                            <span class="px-2 py-1 rounded-full text-xs font-bold ${inv.status === 'Paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">
+                                ${inv.status}
+                            </span>
+                        </td>
+                        <td class="p-3 text-right space-x-2">
+                             ${inv.status !== 'Paid' ? 
+                                `<button onclick="copyReminder('${inv.client}', '${inv.id}', ${inv.total}, '${inv.due_date}', '${sym}')" class="text-gray-500 hover:text-indigo-600 mr-2" title="Copy Reminder">
+                                    <i class="fas fa-bell"></i>
+                                </button>
+                                <button onclick="markPaid('${inv.id}')" class="text-green-600 text-xs font-bold hover:underline">Mark Paid</button>` 
+                                : ''}
+                            <button onclick="openPrintView('${inv.id}')" class="text-indigo-600 text-xs font-bold hover:underline ml-2">
+                                <i class="fas fa-print"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;}).join('');
+            }
+        }
+
+        // --- ACTIONS ---
+
+        function handleInvoiceSubmit(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const amount = parseFloat(formData.get('amount'));
+            const isExport = document.getElementById('chkExport').checked;
+            
+            const clientState = isExport ? 'Other' : formData.get('client_state');
+            const clientCountry = isExport ? formData.get('client_country') : 'India';
+            
+            const taxes = calculateGST(amount, clientState, isExport);
+            
+            const newInvoice = {
+                id: `INV-${new Date().getFullYear()}-${String(db.invoices.length + 1).padStart(3, '0')}`,
+                client: formData.get('client_name'),
+                client_gstin: formData.get('client_gstin'),
+                client_state: clientState,
+                client_country: clientCountry,
+                currency: formData.get('currency'),
+                conversion_rate: parseFloat(formData.get('conversion_rate')),
+                amount: amount,
+                date: formData.get('date'),
+                due_date: formData.get('due_date'),
+                notes: formData.get('notes'),
+                tds_applicable: document.querySelector('[name="tds_applicable"]').checked,
+                is_export: isExport,
+                status: 'Sent',
+                ...taxes
+            };
+
+            db.invoices.push(newInvoice);
+            saveDb();
+            e.target.reset();
+            switchTab('dashboard');
+            alert("Invoice Generated!");
+        }
+
+        function handleExpenseSubmit(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const newExpense = {
+                id: db.expenses.length + 1,
+                vendor: formData.get('vendor'),
+                category: formData.get('category'),
+                amount: parseFloat(formData.get('amount')),
+                date: formData.get('date'),
+                is_recurring: document.querySelector('[name="is_recurring"]').checked
+            };
+            db.expenses.push(newExpense);
+            saveDb();
+            e.target.reset();
+            switchTab('dashboard');
+            alert("Expense Saved!");
+        }
+
+        function handleSettingsSubmit(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            db.user = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                state: formData.get('state'),
+                gstin: formData.get('gstin'),
+                monthly_goal: parseFloat(formData.get('monthly_goal'))
+            };
+            saveDb();
+            alert("Profile Updated!");
+        }
+
+        function markPaid(id) {
+            if(confirm("Mark invoice as Paid?")) {
+                const inv = db.invoices.find(i => i.id === id);
+                if(inv) {
+                    inv.status = 'Paid';
+                    saveDb();
+                }
+            }
+        }
+
+        function copyReminder(client, id, total, dueDate, symbol) {
+            const text = `Hi ${client}, this is a gentle reminder regarding Invoice ${id} for ${symbol}${total.toLocaleString()}. It is due on ${dueDate}. Please let me know if you need any other details. Thanks!`;
+            navigator.clipboard.writeText(text).then(() => alert("Reminder copied to clipboard!"));
+        }
+
+        // --- VIEW MANAGEMENT ---
+        function switchTab(tabId) {
+            ['dashboard', 'invoices', 'expenses', 'settings'].forEach(id => {
+                document.getElementById(`view-${id}`).classList.add('hidden');
+                document.getElementById(`nav-${id}`).classList.remove('nav-active');
+            });
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            document.getElementById(`nav-${tabId}`).classList.add('nav-active');
+            document.getElementById('pageTitle').innerText = tabId.charAt(0).toUpperCase() + tabId.slice(1);
+        }
+
+        function toggleExportMode() {
+            const isExport = document.getElementById('chkExport').checked;
+            const currencyDiv = document.getElementById('inpCurrency');
+            
+            if(isExport) {
+                currencyDiv.value = 'USD';
+                document.getElementById('divState').classList.add('hidden');
+                document.getElementById('divCountry').classList.remove('hidden');
+                document.getElementById('inpState').removeAttribute('required');
+                document.getElementById('inpCountry').setAttribute('required', 'true');
+            } else {
+                currencyDiv.value = 'INR';
+                document.getElementById('divState').classList.remove('hidden');
+                document.getElementById('divCountry').classList.add('hidden');
+                document.getElementById('inpState').setAttribute('required', 'true');
+                document.getElementById('inpCountry').removeAttribute('required');
+            }
+            updateConversion();
+        }
+
+        function updateConversion() {
+            const cur = document.getElementById('inpCurrency').value;
+            const rate = currencyRates[cur] || 1;
+            document.getElementById('inpConversion').value = rate;
+            document.getElementById('divConversion').style.display = (cur !== 'INR') ? 'block' : 'none';
+        }
+
+        // --- PRINT POPUP LOGIC ---
+        function openPrintView(id) {
+            const inv = db.invoices.find(i => i.id === id);
+            if(!inv) return;
+
+            const symbol = symbolMap[inv.currency] || inv.currency;
+            const user = db.user;
+
+            // Generate HTML for the popup window
+            const printContent = `
+            <html>
+                <head>
+                    <title>Invoice ${inv.id}</title>
+                    <script src="https://cdn.tailwindcss.com"><\/script>
+                </head>
+                <body class="p-12 bg-white text-gray-800">
+                    <div class="max-w-3xl mx-auto border p-8">
+                        <div class="flex justify-between items-start mb-8">
+                            <div>
+                                <h1 class="text-4xl font-bold text-indigo-600">INVOICE</h1>
+                                <p class="text-gray-500">#${inv.id}</p>
+                                ${inv.is_export ? '<span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-1 rounded">EXPORT OF SERVICES</span>' : ''}
+                            </div>
+                            <div class="text-right">
+                                <h2 class="font-bold text-xl">${user.name}</h2>
+                                <p>${user.email}</p>
+                                <p>${user.state}, India</p>
+                                <p>GSTIN: ${user.gstin}</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-between mb-8">
+                            <div>
+                                <p class="text-gray-500 text-sm font-bold uppercase">Bill To</p>
+                                <h3 class="font-bold text-lg">${inv.client}</h3>
+                                <p>${inv.is_export ? inv.client_country : inv.client_state}</p>
+                                ${inv.client_gstin ? `<p>GSTIN: ${inv.client_gstin}</p>` : ''}
+                            </div>
+                            <div class="text-right">
+                                <p><span class="text-gray-500">Date:</span> ${inv.date}</p>
+                                <p><span class="text-gray-500">Due Date:</span> ${inv.due_date}</p>
+                            </div>
+                        </div>
+                        <table class="w-full mb-8">
+                            <thead class="border-b-2 border-gray-200">
+                                <tr><th class="text-left py-2">Description</th><th class="text-right py-2">Amount</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td class="py-4">Professional Services</td><td class="text-right py-4">${symbol}${inv.amount.toLocaleString()}</td></tr>
+                            </tbody>
+                        </table>
+                        <div class="flex justify-end mb-8">
+                            <div class="w-1/2">
+                                <div class="flex justify-between mb-2"><span>Subtotal</span><span>${symbol}${inv.amount.toLocaleString()}</span></div>
+                                ${inv.is_export 
+                                    ? `<div class="flex justify-between mb-2 text-gray-600"><span>GST (Zero Rated)</span><span>${symbol}0.00</span></div>`
+                                    : (inv.igst > 0 
+                                        ? `<div class="flex justify-between mb-2 text-gray-600"><span>IGST (18%)</span><span>${symbol}${inv.igst.toLocaleString()}</span></div>`
+                                        : `<div class="flex justify-between mb-2 text-gray-600"><span>CGST (9%)</span><span>${symbol}${inv.cgst.toLocaleString()}</span></div>
+                                           <div class="flex justify-between mb-2 text-gray-600"><span>SGST (9%)</span><span>${symbol}${inv.sgst.toLocaleString()}</span></div>`
+                                    )
+                                }
+                                <div class="flex justify-between font-bold text-xl border-t pt-2 mt-2"><span>Total</span><span>${symbol}${inv.total.toLocaleString()}</span></div>
+                            </div>
+                        </div>
+                        ${inv.notes ? `<div class="border-t pt-4"><p class="font-bold text-sm">Notes:</p><p class="text-sm text-gray-600">${inv.notes}</p></div>` : ''}
+                        ${inv.is_export ? '<div class="mt-8 text-center text-xs text-gray-500"><p>Supply meant for Export under Letter of Undertaking (LUT) without payment of Integrated Tax (IGST).</p></div>' : ''}
+                    </div>
+                    <div class="text-center mt-8 no-print">
+                        <button onclick="window.print()" class="bg-indigo-600 text-white px-6 py-2 rounded shadow">Print / Save PDF</button>
+                    </div>
+                </body>
+            </html>
+            `;
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+        }
+
+        // --- INIT ---
+        const today = new Date().toISOString().split('T')[0];
+        document.querySelectorAll('input[type="date"]').forEach(el => el.value = today);
+        renderDashboard();
+
+    </script>
+</body>
+</html>
